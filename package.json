@@ -1,0 +1,24 @@
+{
+  "name": "stream-deck-discord",
+  "version": "1.0.0",
+  "description": "[![Deploy with GitHub Pages](https://img.shields.io/badge/Deploy%20with-GitHub%20Pages-FFB7C5?style=for-the-badge&logo=github)](https://pages.github.com/) [![License: MIT](https://img.shields.io/badge/License-MIT-5C8A99.svg?style=for-the-badge)](https://opensource.org/licenses/MIT) [![PWA Ready](https://img.shields.io/badge/PWA-Ready-4CAF50.svg?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsebparra/stream-deck-jacknaird.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jsebparra/stream-deck-jacknaird/issues"
+  },
+  "homepage": "https://github.com/jsebparra/stream-deck-jacknaird#readme",
+  "dependencies": {
+    "jsdom": "^30.0.1"
+  }
+}
