@@ -167,7 +167,7 @@ class ModalController {
 
         if (!game) {
             game = {
-                id: 'game_' + Date.now(),
+                id: String(Date.now()),
                 gameName: 'Nuevo Juego',
                 category: 'Gaming',
                 emoji: '🎮',
