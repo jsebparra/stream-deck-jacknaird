@@ -205,7 +205,44 @@
                     </label>
                 </div>
 
-                <!-- Section 6: Backup, Restore & Presets -->
+                <!-- Section 6: GitHub Gist Cloud Sync -->
+                <div class="settings-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="color: var(--sakura-pink); font-size: 0.84rem; font-weight: 600;">☁️ Sincronización Automática en la Nube (GitHub Gist):</label>
+                        <span id="gist-sync-status-badge" class="status-badge warning" style="font-size: 0.72rem; padding: 3px 10px;">☁️ Sin Configurar</span>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="settings-gist-token">Personal Access Token (PAT):</label>
+                            <input type="password" id="settings-gist-token" class="form-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-gist-id">Gist ID:</label>
+                            <input type="text" id="settings-gist-id" class="form-input" placeholder="id_de_tu_gist (ej. a1b2c3d4...)" />
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+                        <button type="button" id="btn-create-gist" class="btn btn-secondary btn-sm" onclick="window.modals.autoCreateGist()">✨ Crear Gist Automático</button>
+                        <button type="button" id="btn-pull-gist" class="btn btn-outline btn-sm" onclick="window.app.pullCloudConfig()">🔄 Sincronizar Ahora (Descargar de Nube)</button>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.78rem; margin-left: auto;">
+                            <input type="checkbox" id="settings-gist-autosync" style="width: 14px; height: 14px;" checked />
+                            <span>Guardar cambios automáticamente en la nube</span>
+                        </label>
+                    </div>
+
+                    <details style="margin-top: 8px; font-size: 0.74rem; color: var(--text-secondary);">
+                        <summary style="cursor: pointer; font-weight: 600;">💡 ¿Cómo obtener tu Token de GitHub para sincronizar PC y Celular?</summary>
+                        <ol style="margin-left: 16px; margin-top: 4px; display: flex; flex-direction: column; gap: 2px;">
+                            <li>En GitHub: Ve a tu avatar ➔ <strong>Settings</strong> ➔ <strong>Developer Settings</strong> ➔ <strong>Personal Access Tokens</strong> (Tokens classic).</li>
+                            <li>Haz clic en <strong>Generate new token (classic)</strong> y marca únicamente la casilla <code>gist</code>.</li>
+                            <li>Copia el token generado (`ghp_...`), pégalo arriba y haz clic en <strong>"✨ Crear Gist Automático"</strong>.</li>
+                        </ol>
+                    </details>
+                </div>
+
+                <!-- Section 7: Backup, Restore & Presets -->
                 <hr style="border: none; border-top: 1px solid var(--border-glass);"/>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
@@ -393,6 +430,7 @@
     <script src="js/audio.js"></script>
     <script src="js/presets.js"></script>
     <script src="js/webhook.js"></script>
+    <script src="js/gistSync.js"></script>
     <script src="js/sakura.js"></script>
     <script src="js/preview.js"></script>
     <script src="js/vault.js"></script>

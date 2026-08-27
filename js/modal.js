@@ -50,12 +50,58 @@ class ModalController {
         
         if (testStatus) testStatus.innerHTML = '';
 
+        // Populate Gist fields
+        const gistTokenInput = document.getElementById('settings-gist-token');
+        const gistIdInput = document.getElementById('settings-gist-id');
+        const gistAutoSyncToggle = document.getElementById('settings-gist-autosync');
+
+        if (gistTokenInput) gistTokenInput.value = window.gistSync.getToken();
+        if (gistIdInput) gistIdInput.value = window.gistSync.getGistId();
+        if (gistAutoSyncToggle) gistAutoSyncToggle.checked = window.gistSync.isAutoSyncEnabled();
+
+        this.updateGistStatusBadge();
+
         if (modal) modal.classList.add('active');
+    }
+
+    updateGistStatusBadge() {
+        const badge = document.getElementById('gist-sync-status-badge');
+        if (!badge) return;
+
+        if (window.gistSync.isConfigured()) {
+            const lastTime = window.gistSync.getLastSyncTime();
+            badge.className = 'status-badge success';
+            badge.innerHTML = `<span class="status-dot"></span> Sincronizado ${lastTime ? '(' + lastTime + ')' : ''}`;
+        } else {
+            badge.className = 'status-badge warning';
+            badge.innerHTML = '<span class="status-dot"></span> Sin Configurar';
+        }
     }
 
     closeSettingsHub() {
         const modal = document.getElementById('settings-hub-modal');
         if (modal) modal.classList.remove('active');
+    }
+
+    async autoCreateGist() {
+        const tokenInput = document.getElementById('settings-gist-token');
+        const token = tokenInput ? tokenInput.value.trim() : '';
+
+        if (!token) {
+            window.app.showToast('Ingresa un Personal Access Token de GitHub primero.', 'warning');
+            return;
+        }
+
+        window.app.showToast('⏳ Creando Gist privado en GitHub...', 'info');
+
+        try {
+            const gistId = await window.gistSync.createGist(token);
+            document.getElementById('settings-gist-id').value = gistId;
+            this.updateGistStatusBadge();
+            window.app.showToast('✨ ¡Gist privado creado con éxito en tu GitHub!', 'success');
+        } catch (err) {
+            window.app.showToast(`❌ Error: ${err.message}`, 'danger');
+        }
     }
 
     saveSettingsHub() {
@@ -69,6 +115,11 @@ class ModalController {
         const sakuraEnabled = document.getElementById('settings-sakura-toggle').checked;
         const audioEnabled = document.getElementById('settings-audio-toggle').checked;
 
+        // Read Gist fields
+        const gistToken = document.getElementById('settings-gist-token').value.trim();
+        const gistId = document.getElementById('settings-gist-id').value.trim();
+        const gistAutoSync = document.getElementById('settings-gist-autosync').checked;
+
         if (webhookUrl && !window.discordService.isValidUrl(webhookUrl)) {
             window.app.showToast('La URL del Webhook no parece válida.', 'warning');
         }
@@ -78,6 +129,10 @@ class ModalController {
         window.discordService.setGlobalMention(globalMention);
         window.discordService.setGlobalFooterText(globalFooterText || 'TikTok Live Stream');
         window.discordService.setGlobalFooterIcon(globalFooterIcon || 'https://cdn-icons-png.flaticon.com/512/3046/3046124.png');
+
+        window.gistSync.setToken(gistToken);
+        window.gistSync.setGistId(gistId);
+        window.gistSync.setAutoSync(gistAutoSync);
 
         window.app.safetyMode = safetyMode;
         window.app.toggleSakura(sakuraEnabled);
@@ -91,7 +146,13 @@ class ModalController {
             window.app.selectGameForPreview(window.app.selectedGameForPreview);
         }
 
+        // Trigger background push to cloud if configured
+        if (window.gistSync.isConfigured() && window.gistSync.isAutoSyncEnabled()) {
+            window.app.pushCloudConfigSilently();
+        }
+
         window.app.showToast('✨ Configuración guardada.', 'success');
+    }
     }
 
     // 🌸 GAME BUTTON EDITOR MODAL

@@ -18,6 +18,7 @@
 - 👣 **Herencia Global de URL & Footer**: Configura la URL de tu directo y el pie de página del embed una sola vez en Ajustes (`⚙️`).
 - 👁️ **Simulador de Embed en Tiempo Real**: Revisa cómo se verá tu mensaje en el modo oscuro de Discord antes de enviarlo.
 - 🛡️ **Modo de Seguridad Opcional**: Activa o desactiva la ventana emergente de confirmación previa al envío.
+- ☁️ **Sincronización Automática en la Nube (GitHub Gist)**: Sincroniza tus botones y ajustes en tiempo real entre la PC de transmisión y tu Celular utilizando la API gratuita de Gists de GitHub.
 - 📲 **PWA Instalable en Móviles**: Agrégala a la pantalla de inicio de tu iPhone o Android para usarla como app táctil a pantalla completa sin barra de navegador.
 - 💾 **Copia de Seguridad JSON**: Exporta e importa tus botones y configuraciones fácilmente entre dispositivos.
 

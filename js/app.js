@@ -7,7 +7,7 @@ class StreamDeckApp {
         this.activeCategoryFilter = 'ALL';
     }
 
-    init() {
+    async init() {
         window.sakuraEffect = new SakuraCanvasEffect('sakura-canvas');
         this.checkWebhookStatus();
 
@@ -19,6 +19,11 @@ class StreamDeckApp {
         const activeGames = window.gameVault.getActiveGames();
         if (activeGames.length > 0) {
             this.selectGameForPreview(activeGames[0].id);
+        }
+
+        // Automatic pull from GitHub Gist on startup if configured
+        if (window.gistSync && window.gistSync.isConfigured() && window.gistSync.isAutoSyncEnabled()) {
+            await this.pullCloudConfig(true);
         }
     }
 
@@ -290,6 +295,7 @@ class StreamDeckApp {
         window.gameVault.archiveGame(gameId);
         this.renderActiveDeck();
         this.renderArchiveList();
+        this.pushCloudConfigSilently();
         this.showToast('📦 Juego archivado.', 'info');
     }
 
@@ -297,8 +303,8 @@ class StreamDeckApp {
         window.cozyAudio.playVaultSound();
         window.gameVault.unarchiveGame(gameId);
         this.renderActiveDeck();
-        // Re-render the archive list in place (user stays in archive modal)
         this.renderArchiveList();
+        this.pushCloudConfigSilently();
         this.showToast('✨ Juego desarchivado y restaurado al deck.', 'success');
     }
 
@@ -306,9 +312,50 @@ class StreamDeckApp {
         if (confirm('¿Eliminar este juego de forma permanente?')) {
             window.gameVault.deleteGame(gameId);
             this.renderActiveDeck();
-            // Re-render archive list (user stays in archive modal)
             this.renderArchiveList();
+            this.pushCloudConfigSilently();
             this.showToast('🗑️ Juego eliminado.', 'info');
+        }
+    }
+
+    async pushCloudConfigSilently() {
+        if (window.gistSync && window.gistSync.isConfigured() && window.gistSync.isAutoSyncEnabled()) {
+            try {
+                await window.gistSync.pushToCloud();
+                if (window.modals) window.modals.updateGistStatusBadge();
+            } catch (err) {
+                console.warn('Silent Gist push error:', err);
+            }
+        }
+    }
+
+    async pullCloudConfig(silent = false) {
+        if (!window.gistSync || !window.gistSync.isConfigured()) {
+            if (!silent) this.showToast('Configura tu Token y Gist ID en los ajustes para sincronizar.', 'warning');
+            return;
+        }
+
+        if (!silent) this.showToast('⏳ Sincronizando con la nube (GitHub Gist)...', 'info');
+
+        try {
+            const { parsed, syncTime } = await window.gistSync.pullFromCloud();
+            this.checkWebhookStatus();
+            this.renderActiveDeck();
+            this.renderArchiveList();
+            if (window.modals) window.modals.updateGistStatusBadge();
+            
+            const activeGames = window.gameVault.getActiveGames();
+            if (activeGames.length > 0) {
+                this.selectGameForPreview(activeGames[0].id);
+            }
+
+            if (!silent) {
+                this.showToast(`✨ ¡Panel sincronizado con la nube! (${syncTime})`, 'success');
+            }
+        } catch (err) {
+            if (!silent) {
+                this.showToast(`❌ Error de sincronización: ${err.message}`, 'danger');
+            }
         }
     }
 
@@ -506,6 +553,7 @@ class StreamDeckApp {
                 window.modals.closeGameEditor();
                 this.renderActiveDeck();
                 this.selectGameForPreview(game.id);
+                this.pushCloudConfigSilently();
                 this.showToast(`✨ "${game.gameName}" guardado.`, 'success');
             });
         }
