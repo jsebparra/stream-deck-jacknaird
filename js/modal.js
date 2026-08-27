@@ -153,7 +153,6 @@ class ModalController {
 
         window.app.showToast('✨ Configuración guardada.', 'success');
     }
-    }
 
     // 🌸 GAME BUTTON EDITOR MODAL
     openGameEditor(gameId = null) {

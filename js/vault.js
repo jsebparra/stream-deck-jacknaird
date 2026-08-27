@@ -68,7 +68,7 @@ class GameVaultService {
     }
 
     unarchiveGame(id) {
-        const games = games = this.getAllGames();
+        const games = this.getAllGames();
         const game = games.find(g => g.id === id);
         if (game) {
             game.isArchived = false;
