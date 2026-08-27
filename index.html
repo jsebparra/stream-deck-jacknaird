@@ -205,20 +205,28 @@
                     </label>
                 </div>
 
-                <!-- Section 6: Backup & Restore -->
+                <!-- Section 6: Backup, Restore & Presets -->
                 <hr style="border: none; border-top: 1px solid var(--border-glass);"/>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <div>
-                        <strong style="font-size: 0.82rem;">💾 Copia de Seguridad</strong>
-                        <p style="font-size: 0.72rem; color: var(--text-muted);">Guarda o restaura juegos y configuraciones.</p>
+                        <strong style="font-size: 0.82rem;">💾 Copia de Seguridad & Gestión</strong>
+                        <p style="font-size: 0.72rem; color: var(--text-muted);">Guarda, restaura o reinicia tu panel de juegos.</p>
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-outline btn-sm" onclick="window.app.exportBackupJSON()">Descargar</button>
-                        <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer;">
-                            Restaurar
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button class="btn btn-outline btn-sm" onclick="window.app.exportBackupJSON()" title="Descargar archivo JSON con tu panel">Descargar JSON</button>
+                        <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer;" title="Cargar archivo JSON previo">
+                            Restaurar JSON
                             <input type="file" accept=".json" onchange="window.app.importBackupJSON(event)" style="display: none;"/>
                         </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 10px 12px; border-radius: var(--radius-sm); margin-top: 4px;">
+                    <span style="font-size: 0.78rem; color: var(--text-secondary);">¿Quieres empezar de cero o probar botones de ejemplo?</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn btn-sm btn-outline" onclick="window.app.loadSamplePresets()" title="Cargar presets de ejemplo">📦 Cargar Ejemplos</button>
+                        <button class="btn btn-sm btn-danger-icon" onclick="window.app.resetAllData()" title="Vaciar todo el panel">🧹 Vaciar Todo</button>
                     </div>
                 </div>
 

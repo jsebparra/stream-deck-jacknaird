@@ -9,16 +9,17 @@ class GameVaultService {
     init() {
         const stored = localStorage.getItem(this.storageKey);
         if (!stored) {
-            this.saveAll(window.DEFAULT_PRESETS);
+            // Clean slate by default for new users
+            this.saveAll([]);
         }
     }
 
     getAllGames() {
         try {
             const data = localStorage.getItem(this.storageKey);
-            return data ? JSON.parse(data) : window.DEFAULT_PRESETS;
+            return data ? JSON.parse(data) : [];
         } catch (e) {
-            return window.DEFAULT_PRESETS;
+            return [];
         }
     }
 
@@ -67,7 +68,7 @@ class GameVaultService {
     }
 
     unarchiveGame(id) {
-        const games = this.getAllGames();
+        const games = games = this.getAllGames();
         const game = games.find(g => g.id === id);
         if (game) {
             game.isArchived = false;
@@ -81,8 +82,12 @@ class GameVaultService {
         this.saveAll(games);
     }
 
-    resetToDefault() {
-        this.saveAll(window.DEFAULT_PRESETS);
+    clearAll() {
+        this.saveAll([]);
+    }
+
+    loadSamplePresets() {
+        this.saveAll(window.DEFAULT_PRESETS || []);
     }
 }
 

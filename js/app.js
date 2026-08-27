@@ -73,6 +73,23 @@ class StreamDeckApp {
             : allActiveGames.filter(g => (g.category || 'Gaming') === this.activeCategoryFilter);
 
         if (filteredGames.length === 0) {
+            if (allActiveGames.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--border-sakura); border-radius: var(--radius-lg);">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🌸</span>
+                        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">¡Bienvenido a tu StreamDeck Pro!</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem; max-width: 480px; margin: 0 auto 16px auto;">
+                            Tu panel está limpio. Puedes crear tus propios botones personalizados desde cero o cargar un paquete de juegos de ejemplo para empezar rápido.
+                        </p>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="window.modals.openGameEditor()">➕ Crear Mi Primer Botón</button>
+                            <button class="btn btn-outline" onclick="window.app.loadSamplePresets()">📦 Cargar Presets de Ejemplo</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; padding: 36px; text-align: center;">
                     <p style="color: var(--text-secondary); margin-bottom: 10px;">🌸 No hay juegos en "${this.escapeHtml(this.activeCategoryFilter)}".</p>
@@ -413,6 +430,26 @@ class StreamDeckApp {
             }
         };
         reader.readAsText(file);
+    }
+
+    loadSamplePresets() {
+        window.gameVault.loadSamplePresets();
+        this.renderActiveDeck();
+        this.renderArchiveList();
+        const activeGames = window.gameVault.getActiveGames();
+        if (activeGames.length > 0) {
+            this.selectGameForPreview(activeGames[0].id);
+        }
+        this.showToast('📦 Presets de ejemplo cargados.', 'success');
+    }
+
+    resetAllData() {
+        if (confirm('¿Estás seguro de borrar todos los botones y dejar el panel completamente limpio?')) {
+            window.gameVault.clearAll();
+            this.renderActiveDeck();
+            this.renderArchiveList();
+            this.showToast('🧹 Panel limpiado a cero.', 'info');
+        }
     }
 
     bindEvents() {
