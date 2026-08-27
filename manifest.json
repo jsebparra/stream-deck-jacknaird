@@ -1,0 +1,16 @@
+{
+  "name": "StreamDeck Pro 🌸",
+  "short_name": "StreamDeck",
+  "description": "Discord Live Announcer Web Stream Deck for Streamers",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1f2e",
+  "theme_color": "#ffb7c5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3046/3046124.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

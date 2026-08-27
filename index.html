@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>StreamDeck Pro 🌸 | Discord Live Announcer</title>
+    
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1f2e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StreamDeck">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3046/3046124.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Sakura Canvas Floating Effect -->
+    <canvas id="sakura-canvas"></canvas>
+
+    <div class="app-wrapper">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand-section">
+                <span class="brand-icon">🌸</span>
+                <div>
+                    <h1 class="brand-title">StreamDeck Pro</h1>
+                    <p class="brand-subtitle">Discord Live Announcer • Cozy Nordic Sakura Edition</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <!-- Read-only status indicator -->
+                <div id="webhook-status-badge" class="status-badge warning" title="Estado de conexión con Discord">
+                    <span class="status-dot"></span> Webhook Sin Configurar
+                </div>
+
+                <button class="btn btn-outline" onclick="window.app.openArchiveModal()" title="Abrir Archivo de Juegos">
+                    📦 Archivo (<span id="vault-count-badge">0</span>)
+                </button>
+
+                <!-- Unified Settings Hub Button (Gear Icon) -->
+                <button class="btn btn-secondary" onclick="window.modals.openSettingsHub()" title="Configuración Global del Stream Deck">
+                    ⚙️ Configuración
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="main-content-layout">
+
+            <!-- Stream Deck Touch Grid Panel -->
+            <section class="deck-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <span>📱 Stream Deck</span>
+                        <small style="color: var(--text-muted); font-size: 0.76rem; font-weight: normal;">(Toca un botón para enviar a Discord)</small>
+                    </h2>
+
+                    <button class="btn btn-sm btn-secondary" onclick="window.modals.openGameEditor()" title="Agregar un nuevo juego">
+                        ➕ Crear Juego
+                    </button>
+                </div>
+
+                <!-- Category Filter Chips Bar -->
+                <div id="category-filter-bar" class="category-filter-bar"></div>
+
+                <!-- Deck Keys Grid -->
+                <div id="deck-grid" class="deck-grid">
+                    <!-- Dynamic Keys Injected by app.js -->
+                </div>
+            </section>
+
+            <!-- Side Inspector (Live Preview & Activity Log) -->
+            <aside class="side-panel">
+
+                <!-- Discord Embed Live Preview Simulator -->
+                <div class="preview-card-wrapper">
+                    <div class="section-title">
+                        <span>👁️ Vista Previa Discord</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted);">En vivo</span>
+                    </div>
+
+                    <div id="discord-preview-container">
+                        <!-- Dynamic Discord Card Injected by preview.js -->
+                    </div>
+                </div>
+
+                <!-- History Log -->
+                <div class="history-card-wrapper">
+                    <div class="section-title">
+                        <span>📜 Historial</span>
+                        <button class="btn btn-sm btn-outline" onclick="window.app.clearHistoryLogs()">Limpiar</button>
+                    </div>
+
+                    <div id="history-log-list" class="history-log-list">
+                        <!-- Logs Injected by app.js -->
+                    </div>
+                </div>
+
+            </aside>
+
+        </main>
+
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
+    <!-- MODAL 1: Unified Settings Hub Modal (⚙️) -->
+    <div id="settings-hub-modal" class="modal-overlay">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>⚙️ Configuración Global</h3>
+                <button class="modal-close-btn" onclick="window.modals.closeSettingsHub()">✕</button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                
+                <!-- Section 1: Global TikTok Live Link -->
+                <div class="form-group">
+                    <label for="settings-global-live-url">🔗 URL Global de tu TikTok Live:</label>
+                    <input type="url" id="settings-global-live-url" class="form-input" placeholder="https://www.tiktok.com/@tu_usuario/live" />
+                    <small style="color: var(--text-muted); font-size: 0.74rem;">Todos los juegos usarán este enlace automáticamente.</small>
+                </div>
+
+                <!-- Section 2: Discord Webhook Setup -->
+                <div class="settings-section">
+                    <div class="form-group">
+                        <label for="settings-webhook-url">🔑 URL del Webhook de Discord:</label>
+                        <input type="url" id="settings-webhook-url" class="form-input" placeholder="https://discord.com/api/webhooks/123456789/abcdef..." />
+                    </div>
+
+                    <div id="settings-test-status" style="font-size: 0.82rem; margin-bottom: 8px;"></div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" id="settings-test-webhook-btn" class="btn btn-secondary btn-sm">🧪 Probar Conexión</button>
+                    </div>
+
+                    <details style="margin-top: 10px; font-size: 0.76rem; color: var(--text-secondary);">
+                        <summary style="cursor: pointer; font-weight: 600;">💡 ¿Cómo crear un Webhook en Discord?</summary>
+                        <ol style="margin-left: 16px; margin-top: 6px; display: flex; flex-direction: column; gap: 3px;">
+                            <li>En Discord: <strong>Ajustes del Servidor</strong> ➔ <strong>Integraciones</strong> ➔ <strong>Webhooks</strong></li>
+                            <li><strong>Crear Webhook</strong> y selecciona tu canal de avisos</li>
+                            <li><strong>Copiar URL del Webhook</strong> y pégala arriba</li>
+                        </ol>
+                    </details>
+                </div>
+
+                <!-- Section 3: Global Footer Configuration -->
+                <div class="settings-section">
+                    <label style="color: var(--sakura-pink); margin-bottom: 6px; display: block; font-size: 0.84rem; font-weight: 600;">👣 Pie de Página Global (Footer del Embed):</label>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="settings-global-footer-text">Texto:</label>
+                            <input type="text" id="settings-global-footer-text" class="form-input" placeholder="ej. TikTok Live • Sigue el canal" />
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-global-footer-icon">URL del Ícono:</label>
+                            <input type="url" id="settings-global-footer-icon" class="form-input" placeholder="URL de tu logo o avatar" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Global Preferences -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="settings-global-mention">Mención Global:</label>
+                        <select id="settings-global-mention" class="form-select">
+                            <option value="@everyone">@everyone (Todos)</option>
+                            <option value="@here">@here (Solo conectados)</option>
+                            <option value="">Ninguna mención</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="justify-content: center;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 16px;">
+                            <input type="checkbox" id="settings-safety-toggle" style="width: 16px; height: 16px;" />
+                            <span style="font-size: 0.84rem;">🛡️ Confirmar antes de enviar</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Section 5: Atmosphere Toggles -->
+                <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem;">
+                        <input type="checkbox" id="settings-sakura-toggle" style="width: 15px; height: 15px;" checked />
+                        <span>🌸 Pétalos de Sakura</span>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem;">
+                        <input type="checkbox" id="settings-audio-toggle" style="width: 15px; height: 15px;" checked />
+                        <span>🔊 Efectos de sonido</span>
+                    </label>
+                </div>
+
+                <!-- Section 6: Backup & Restore -->
+                <hr style="border: none; border-top: 1px solid var(--border-glass);"/>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <strong style="font-size: 0.82rem;">💾 Copia de Seguridad</strong>
+                        <p style="font-size: 0.72rem; color: var(--text-muted);">Guarda o restaura juegos y configuraciones.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline btn-sm" onclick="window.app.exportBackupJSON()">Descargar</button>
+                        <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer;">
+                            Restaurar
+                            <input type="file" accept=".json" onchange="window.app.importBackupJSON(event)" style="display: none;"/>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+                    <button type="button" class="btn btn-secondary" onclick="window.modals.closeSettingsHub()">Cancelar</button>
+                    <button type="button" id="save-settings-btn" class="btn btn-primary">💾 Guardar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Game Payload Editor -->
+    <div id="game-editor-modal" class="modal-overlay">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="editor-modal-title">🌸 Editar Juego</h3>
+                <button class="modal-close-btn" onclick="window.modals.closeGameEditor()">✕</button>
+            </div>
+
+            <input type="hidden" id="edit-game-id" />
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>Nombre del Juego / Actividad:</label>
+                    <input type="text" id="edit-game-name" class="form-input" placeholder="ej. Skyrim, Minecraft" />
+                </div>
+                <div class="form-group">
+                    <label>Categoría:</label>
+                    <div class="category-combobox-wrapper">
+                        <input type="text" id="edit-category" class="form-input" placeholder="Escribe o selecciona..." autocomplete="off" />
+                        <div id="category-dropdown" class="category-dropdown"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emoji — COMPACT INLINE -->
+            <div class="form-group">
+                <label>Ícono del Botón:</label>
+                <div class="emoji-inline-row">
+                    <input type="text" id="edit-emoji" class="form-input" placeholder="🎮" maxlength="4" />
+                    <div class="emoji-quick-chips">
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🗡️')">🗡️</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('⛏️')">⛏️</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🎯')">🎯</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🌸')">🌸</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🏆')">🏆</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🎁')">🎁</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('👻')">👻</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🎲')">🎲</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('⚔️')">⚔️</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('👑')">👑</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🚀')">🚀</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('👾')">👾</span>
+                        <span class="emoji-chip" onclick="window.modals.selectEmojiChip('🐉')">🐉</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Título del Anuncio (Embed):</label>
+                <input type="text" id="edit-title" class="form-input" placeholder="ej. 🗡️ ¡Estamos EN VIVO explorando Skyrim!" />
+            </div>
+
+            <div class="form-group">
+                <label>Descripción del Anuncio:</label>
+                <textarea id="edit-description" class="form-textarea" rows="2" placeholder="ej. Vuelve la aventura en las tierras del norte."></textarea>
+            </div>
+
+            <!-- Color Palette — ALL ROUND -->
+            <div class="form-group">
+                <label>Color de Acento del Embed:</label>
+                <div class="color-picker-row">
+                    <input type="color" id="edit-accent-color" class="color-input-round" value="#FFB7C5" title="Color personalizado" />
+                    <div class="color-swatches-container">
+                        <span class="color-swatch" style="background-color: #FFB7C5;" onclick="window.modals.selectColorSwatch('#FFB7C5')" title="Rosa Sakura"></span>
+                        <span class="color-swatch" style="background-color: #5C8A99;" onclick="window.modals.selectColorSwatch('#5C8A99')" title="Azul Nórdico"></span>
+                        <span class="color-swatch" style="background-color: #4CAF50;" onclick="window.modals.selectColorSwatch('#4CAF50')" title="Verde Esmeralda"></span>
+                        <span class="color-swatch" style="background-color: #FF4655;" onclick="window.modals.selectColorSwatch('#FF4655')" title="Rojo Carmesí"></span>
+                        <span class="color-swatch" style="background-color: #FFD700;" onclick="window.modals.selectColorSwatch('#FFD700')" title="Dorado"></span>
+                        <span class="color-swatch" style="background-color: #9B59B6;" onclick="window.modals.selectColorSwatch('#9B59B6')" title="Púrpura"></span>
+                        <span class="color-swatch" style="background-color: #00F2FE;" onclick="window.modals.selectColorSwatch('#00F2FE')" title="Cian"></span>
+                        <span class="color-swatch" style="background-color: #FF5E36;" onclick="window.modals.selectColorSwatch('#FF5E36')" title="Naranja"></span>
+                        <span class="color-swatch" style="background-color: #8E9AAF;" onclick="window.modals.selectColorSwatch('#8E9AAF')" title="Gris"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>URL Imagen Banner:</label>
+                    <input type="url" id="edit-image-url" class="form-input" placeholder="URL de imagen para el embed" />
+                </div>
+                <div class="form-group">
+                    <label>URL Miniatura (Thumbnail):</label>
+                    <input type="url" id="edit-thumbnail-url" class="form-input" placeholder="Opcional: URL de logo pequeño" />
+                </div>
+            </div>
+
+            <!-- Custom Inline Fields -->
+            <div class="settings-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <div>
+                        <label style="color: var(--sakura-pink); font-weight: 600; font-size: 0.82rem;">✨ Campos Inline del Embed:</label>
+                        <p style="font-size: 0.72rem; color: var(--text-muted);">Datos extra al final del mensaje (ej. Nombre: "Juego" ➔ Valor: "Skyrim")</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="window.modals.addCustomField()">➕ Campo</button>
+                </div>
+                <div id="custom-fields-container"></div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+                <button type="button" class="btn btn-secondary" onclick="window.modals.closeGameEditor()">Cancelar</button>
+                <button type="button" id="save-game-editor-btn" class="btn btn-primary">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Archive (formerly "Bóveda") -->
+    <div id="archive-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 760px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📦 Archivo de Juegos</h3>
+                <button class="modal-close-btn" onclick="window.app.closeArchiveModal()">✕</button>
+            </div>
+
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                Aquí se guardan los juegos que archivas temporalmente sin borrar sus configuraciones. Haz clic en <strong>Desarchivar</strong> para devolver un juego al Stream Deck principal.
+            </p>
+
+            <div id="archive-vault-list">
+                <!-- Archived Items Injected by app.js -->
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                <button class="btn btn-secondary" onclick="window.app.closeArchiveModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Safety Send Confirmation Modal -->
+    <div id="confirm-send-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 500px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📢 Confirmar Envío</h3>
+                <button class="modal-close-btn" onclick="window.app.closeConfirmModal()">✕</button>
+            </div>
+
+            <p style="font-size: 0.88rem;">
+                ¿Enviar aviso de <strong id="confirm-game-title" style="color: var(--sakura-pink);">Juego</strong> a Discord?
+                <span id="confirm-mention-tag" style="background: rgba(88, 101, 242, 0.15); color: #c9cdfb; padding: 1px 6px; border-radius: 3px; font-weight: 500;">@everyone</span>
+            </p>
+
+            <div id="confirm-embed-preview"></div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                <button class="btn btn-secondary" onclick="window.app.closeConfirmModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="window.app.confirmSendNow()">🚀 Enviar Anuncio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/presets.js"></script>
+    <script src="js/webhook.js"></script>
+    <script src="js/sakura.js"></script>
+    <script src="js/preview.js"></script>
+    <script src="js/vault.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
