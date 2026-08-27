@@ -55,11 +55,12 @@ class ModalController {
         const gistIdInput = document.getElementById('settings-gist-id');
         const gistAutoSyncToggle = document.getElementById('settings-gist-autosync');
 
-        if (gistTokenInput) gistTokenInput.value = window.gistSync.getToken();
-        if (gistIdInput) gistIdInput.value = window.gistSync.getGistId();
-        if (gistAutoSyncToggle) gistAutoSyncToggle.checked = window.gistSync.isAutoSyncEnabled();
-
-        this.updateGistStatusBadge();
+        if (window.gistSync) {
+            if (gistTokenInput) gistTokenInput.value = window.gistSync.getToken();
+            if (gistIdInput) gistIdInput.value = window.gistSync.getGistId();
+            if (gistAutoSyncToggle) gistAutoSyncToggle.checked = window.gistSync.isAutoSyncEnabled();
+            this.updateGistStatusBadge();
+        }
 
         if (modal) modal.classList.add('active');
     }
@@ -68,7 +69,7 @@ class ModalController {
         const badge = document.getElementById('gist-sync-status-badge');
         if (!badge) return;
 
-        if (window.gistSync.isConfigured()) {
+        if (window.gistSync && window.gistSync.isConfigured()) {
             const lastTime = window.gistSync.getLastSyncTime();
             badge.className = 'status-badge success';
             badge.innerHTML = `<span class="status-dot"></span> Sincronizado ${lastTime ? '(' + lastTime + ')' : ''}`;
@@ -208,7 +209,10 @@ class ModalController {
     populateEditorForm(game) {
         document.getElementById('edit-game-id').value = game.id;
         document.getElementById('edit-game-name').value = game.gameName || '';
-        document.getElementById('edit-category').value = game.category || '';
+
+        const categoryInput = document.getElementById('edit-category');
+        if (categoryInput) categoryInput.value = game.category || '';
+
         document.getElementById('edit-emoji').value = this.sanitizeEmoji(game.emoji) || '🎮';
         document.getElementById('edit-title').value = game.title || '';
         document.getElementById('edit-description').value = game.description || '';
@@ -226,7 +230,6 @@ class ModalController {
         const input = document.getElementById('edit-category');
         if (!input) return;
 
-        // Remove old listeners by cloning
         const newInput = input.cloneNode(true);
         input.parentNode.replaceChild(newInput, input);
 
@@ -258,37 +261,36 @@ class ModalController {
         const categories = this.getExistingCategories();
         const query = (filterText || '').toLowerCase().trim();
 
-        // Filter categories matching the query
-        let filtered = categories;
-        if (query) {
-            filtered = categories.filter(cat => cat.toLowerCase().includes(query));
-        }
+        const filtered = query
+            ? categories.filter(cat => cat.toLowerCase().includes(query))
+            : categories;
 
-        // Build dropdown items
-        let html = filtered.map(cat => `
-            <div class="category-dropdown-item" onmousedown="window.modals.selectCategoryFromDropdown('${this.escapeHtml(cat)}')">
-                ${this.escapeHtml(cat)}
-            </div>
-        `).join('');
+        dropdown.innerHTML = '';
 
-        // If the typed text doesn't exactly match any category, offer "Create new"
+        filtered.forEach(cat => {
+            const item = document.createElement('div');
+            item.className = 'category-dropdown-item';
+            item.textContent = cat;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.selectCategoryFromDropdown(cat);
+            });
+            dropdown.appendChild(item);
+        });
+
         const exactMatch = categories.some(c => c.toLowerCase() === query);
         if (query && !exactMatch) {
-            html += `
-                <div class="category-dropdown-item new-item" onmousedown="window.modals.selectCategoryFromDropdown('${this.escapeHtml(filterText.trim())}')">
-                    ➕ Crear "${this.escapeHtml(filterText.trim())}"
-                </div>
-            `;
+            const createItem = document.createElement('div');
+            createItem.className = 'category-dropdown-item new-item';
+            createItem.textContent = `➕ Crear "${filterText.trim()}"`;
+            createItem.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.selectCategoryFromDropdown(filterText.trim());
+            });
+            dropdown.appendChild(createItem);
         }
 
-        if (html) {
-            dropdown.innerHTML = html;
-            dropdown.classList.add('visible');
-        } else {
-            dropdown.classList.remove('visible');
-        }
-
-        this.categoryDropdownVisible = true;
+        dropdown.classList.toggle('visible', dropdown.children.length > 0);
     }
 
     hideCategoryDropdown() {
@@ -312,7 +314,9 @@ class ModalController {
         if (!this.currentGameEditing) return null;
 
         this.currentGameEditing.gameName = document.getElementById('edit-game-name').value.trim();
-        this.currentGameEditing.category = document.getElementById('edit-category').value.trim() || 'Gaming';
+
+        const categoryInput = document.getElementById('edit-category');
+        this.currentGameEditing.category = categoryInput ? categoryInput.value.trim() || 'Gaming' : 'Gaming';
         
         const rawEmoji = document.getElementById('edit-emoji').value.trim();
         this.currentGameEditing.emoji = this.sanitizeEmoji(rawEmoji) || '🎮';

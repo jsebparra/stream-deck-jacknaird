@@ -17,21 +17,24 @@ class GameVaultService {
     getAllGames() {
         try {
             const data = localStorage.getItem(this.storageKey);
-            return data ? JSON.parse(data) : [];
+            const parsed = data ? JSON.parse(data) : [];
+            return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
             return [];
         }
     }
 
     getActiveGames() {
-        return this.getAllGames()
-            .filter(g => !g.isArchived)
+        const all = this.getAllGames();
+        return (Array.isArray(all) ? all : [])
+            .filter(g => g && !g.isArchived)
             .sort((a, b) => (a.order || 0) - (b.order || 0));
     }
 
     getArchivedGames() {
-        return this.getAllGames()
-            .filter(g => g.isArchived);
+        const all = this.getAllGames();
+        return (Array.isArray(all) ? all : [])
+            .filter(g => g && g.isArchived);
     }
 
     getGameById(id) {
